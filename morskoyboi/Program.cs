@@ -54,23 +54,94 @@ namespace morskoyboi
             Console.WriteLine($"{Type}: количество попаданий {Hits} из {Length}.");
         }
     }
-    class GameField : Ship
+    class GameField
     {
-        public static int Size = 10;
+        public int Size = 10;
         public Ship[,] grid;
         public List<Ship> ships;
 
-        public GameField()
+        public GameField() 
         {
-            ships = new List<Ship>();
-            grid = new Ship[Size, Size];
+            List<Ship> ships = new List<Ship>();
+            Ship[,]grid = new Ship[Size, Size];
         }
         public bool AddShip(Ship ship)
         {
-            if (grid[StartX, StartY])
-            {
+            int x = ship.StartX;
+            int y = ship.StartY;
+            int lenght = ship.Length;
+            bool horizontal = ship.IsHorizontal;
+
+            if (horizontal)
+            {   
+                if (y < 1 || y > Size || x < 1 || x + lenght - 1 > Size)
+                {
+                    return false;
+                }
 
             }
+            else
+            {
+                if (x < 1 || x > Size || y< 1 || y + lenght - 1 > Size)
+                {
+                    return false;
+                }
+            }
+            
+            for (int i = 0; i < ship.Length; i++)
+            {
+                if (horizontal)
+                {
+                    x = ship.StartX + i;
+                    y = ship.StartY;
+                }
+                else
+                {
+                    x = ship.StartX;
+                    y = ship.StartY + i;
+                }
+                if (grid[x - 1, y - 1] != null)
+                {
+                    return false ;
+                }
+            }
+            for (int i = 0; i < ship.Length; i++)
+            {
+                if (horizontal)
+                {
+                    x = ship.StartX + i;
+                    y = ship.StartY;
+                }
+                else
+                {
+                    x = ship.StartX;
+                    y = ship.StartY + i;
+                }
+                grid[x - 1, y - 1] = ship;
+            }
+            ships.Add(ship);
+            return true;
+        }
+        public bool ReceiveShot(int x, int y)
+        {
+            if (x < 1 || x > Size || y < 1 || y > Size)
+            {
+                Console.WriteLine("Координаты не в пределах поля!");
+                return false;
+            }
+            Ship ship = grid[x - 1, y - 1];
+            if (ship == null)
+            {
+                Console.WriteLine("Промах!");
+                return false;
+            }
+            bool popal = ship.Hit();
+            Console.WriteLine("Попадание!");
+            if (popal)
+            {
+                Console.WriteLine($"Корабль {ship.Type} уничтожен!");
+            }
+            return true;
         }
     }
 }
