@@ -143,5 +143,82 @@ namespace morskoyboi
             }
             return true;
         }
+        public bool AllShipsDestroyed()
+        {
+            foreach(Ship ship in ships)
+            {
+                if(ship.Hits == ship.Length)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public void PrintField(bool hideShips)
+        {
+            string[,] display = new string[Size, Size];
+            for (int i = 0; i < Size; i++)
+            {
+                for (int j = 0; j < Size; j++)
+                {
+                    if (hideShips)
+                    {
+                        if (grid[i, j] == null)
+                        {
+                            display[i, j] = "~";
+                        }
+                        else
+                        {
+                            display[i, j] = " ";
+                        }
+                    }
+                    else
+                    {
+                        if (grid[i, j] == null)
+                        {
+                            display[i, j] = "~";
+                        }
+                        else
+                        {
+                            display[i, j] = "S";
+                        }
+                    }
+                }
+            }
+            for (int i = 0; i < Size; i++)
+            {
+                for (int j = 0; j < Size; j++)
+                {
+                    if (grid[i, j] != null && grid[i, j].Hits > 0)
+                    {
+                        Ship ship = grid[i, j];
+                        for (int k = 0; k < ship.Length; k++)
+                        {
+                            int x = ship.StartX;
+                            int y = ship.StartY;
+                            if (ship.IsHorizontal)
+                            {
+                                y += k;
+                            }
+                            else
+                            {
+                                x += k;
+                            }
+                            if (x == i && y == j && k < ship.Length)
+                            {
+                                display[i, j] = "#";
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            Console.Write("   ");
+            for (int i = 0;i < Size; i++)
+            {
+
+            }
+        }   
+        
     }
 }
