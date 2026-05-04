@@ -12,6 +12,28 @@ namespace morskoyboi
     {
         static void Main(string[] args)
         {
+            GameField gameField = new GameField();
+            int shotscount = 0;
+            Ship ship1 = new Ship("Линкор", 4, 0, 0, true);
+            Ship ship2 = new Ship("Крейсер", 3, 2, 2, false);
+            Ship ship3 = new Ship("Эсминец", 2, 4, 3, true);
+            Ship ship4 = new Ship("Эсминец", 2, 3, 6, false);
+
+            gameField.AddShip(ship1);
+            gameField.AddShip(ship2);
+            gameField.AddShip(ship3);
+            gameField.AddShip(ship4);
+
+            Console.WriteLine("Начальное поле:");
+            gameField.PrintField(false);
+
+            while (!gameField.AllShipsDestroyed())
+            {
+                Console.WriteLine("Текущее поле");
+                gameField.PrintField(true);
+
+                Console.WriteLine($"Сделано выстрелов {shotscount}");
+            }
         }
     }
     class Ship
@@ -214,9 +236,19 @@ namespace morskoyboi
                 }
             }
             Console.Write("   ");
-            for (int i = 0;i < Size; i++)
+            for (int j = 0;j < Size; j++)
             {
-
+                Console.Write($"{j, 2}");
+            }
+            Console.WriteLine();
+            for (int i = 0; i < Size; i++)
+            {
+                Console.WriteLine($"{i + 1,2}");
+                for (int j = 0; j < Size; j++)
+                {
+                    Console.WriteLine($"{display[i, j], 2}");
+                }
+                Console.WriteLine() ;
             }
         }   
         
