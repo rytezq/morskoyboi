@@ -14,10 +14,10 @@ namespace morskoyboi
         {
             GameField gameField = new GameField();
             int shotscount = 0;
-            Ship ship1 = new Ship("Линкор", 4, 0, 0, true);
-            Ship ship2 = new Ship("Крейсер", 3, 2, 2, false);
-            Ship ship3 = new Ship("Эсминец", 2, 4, 3, true);
-            Ship ship4 = new Ship("Эсминец", 2, 3, 6, false);
+            Ship ship1 = new Ship("Линкор", 4, 1, 1, true);
+            Ship ship2 = new Ship("Крейсер", 3, 2, 3, false);
+            Ship ship3 = new Ship("Эсминец", 2, 5, 5, true);
+            Ship ship4 = new Ship("Эсминец", 2, 7, 8, false);
 
             gameField.AddShip(ship1);
             gameField.AddShip(ship2);
@@ -29,11 +29,43 @@ namespace morskoyboi
 
             while (!gameField.AllShipsDestroyed())
             {
-                Console.WriteLine("Текущее поле");
+                Console.Clear();
+                Console.WriteLine($">>>>> МОРСКОЙ БОЙ <<<<<");
+                Console.WriteLine($"------------------------");
+                Console.WriteLine($"Количество выстрелов: {shotscount}");
+                Console.WriteLine();
+
                 gameField.PrintField(true);
 
-                Console.WriteLine($"Сделано выстрелов {shotscount}");
+                Console.WriteLine($"\n------------------------");
+                Console.WriteLine($"Введите координаты (x y)");
+                string input = Console.ReadLine();
+
+                string[] p = input.Split(' ');
+                if (p.Length != 2)
+                {
+                    Console.WriteLine($"Ошибка: нужно ввести два числа через пробел");
+                    Console.ReadKey();
+                    continue;
+                }
+                if (!int.TryParse(p[0], out int x) || !int.TryParse(p[1], out int y))
+                {
+                    Console.WriteLine($"Ошибка: введите целые числа");
+                    Console.ReadKey();
+                    continue;
+                }
+
+                shotscount++;
+                bool hit = gameField.ReceiveShot(x, y);
+
+                Console.WriteLine($"Нажмите любую клавишу для продолжения");
+                Console.ReadKey();
             }
+
+            Console.Clear();
+            Console.WriteLine($"Поздравляем вы победили");
+            Console.WriteLine($"Вы уничтожили все корабли за {shotscount} выстрелов");
+            Console.ReadKey();
         }
     }
     class Ship
@@ -71,6 +103,10 @@ namespace morskoyboi
         {
             return Type;
         }
+        public bool Destroyed()
+        {
+            return Hits == Length;
+        }
         public void DisplayStatus()
         {
             Console.WriteLine($"{Type}: количество попаданий {Hits} из {Length}.");
@@ -81,38 +117,37 @@ namespace morskoyboi
         public int Size = 10;
         public Ship[,] grid;
         public List<Ship> ships;
+        public bool[,] shots;
 
         public GameField() 
         {
-            List<Ship> ships = new List<Ship>();
-            Ship[,]grid = new Ship[Size, Size];
+            ships = new List<Ship>();
+            grid = new Ship[Size, Size];
+            shots = new bool[Size, Size];
         }
         public bool AddShip(Ship ship)
         {
             int x = ship.StartX;
             int y = ship.StartY;
             int lenght = ship.Length;
-            bool horizontal = ship.IsHorizontal;
-
-            if (horizontal)
-            {   
-                if (y < 1 || y > Size || x < 1 || x + lenght - 1 > Size)
+            bool horiz = ship.IsHorizontal;
+            if (horiz)
+            {
+                if (y < 1 || y > Size || x < 1 || x + lenght - 1 > Size || x > Size)
                 {
                     return false;
                 }
-
             }
             else
             {
-                if (x < 1 || x > Size || y< 1 || y + lenght - 1 > Size)
+                if (x < 1 || x > Size || y < 1 || y + lenght - 1 > Size || y > Size)
                 {
                     return false;
                 }
             }
-            
-            for (int i = 0; i < ship.Length; i++)
+            for (int i = 0; i < lenght; i++)
             {
-                if (horizontal)
+                if (horiz)
                 {
                     x = ship.StartX + i;
                     y = ship.StartY;
@@ -124,12 +159,12 @@ namespace morskoyboi
                 }
                 if (grid[x - 1, y - 1] != null)
                 {
-                    return false ;
+                    return false;
                 }
             }
-            for (int i = 0; i < ship.Length; i++)
+            for (int i = 0; i < lenght; i++)
             {
-                if (horizontal)
+                if (horiz)
                 {
                     x = ship.StartX + i;
                     y = ship.StartY;
@@ -151,6 +186,7 @@ namespace morskoyboi
                 Console.WriteLine("Координаты не в пределах поля!");
                 return false;
             }
+            shots[x - 1, y - 1] = true;
             Ship ship = grid[x - 1, y - 1];
             if (ship == null)
             {
@@ -167,89 +203,73 @@ namespace morskoyboi
         }
         public bool AllShipsDestroyed()
         {
-            foreach(Ship ship in ships)
+            foreach (Ship ship in ships)
             {
-                if(ship.Hits == ship.Length)
+                if (ship.Hits != ship.Length)
                 {
-                    return true;
+                    return false;
                 }
             }
-            return false;
+            return true;
         }
         public void PrintField(bool hideShips)
         {
-            string[,] display = new string[Size, Size];
-            for (int i = 0; i < Size; i++)
+            Console.Write($"   ");
+            for (int i = 1; i <= Size; i++)
             {
-                for (int j = 0; j < Size; j++)
+                Console.Write($"{i,3} ");
+            }
+            Console.WriteLine();
+            Console.Write($"    ");
+            for (int i = 1; i <= Size; i++)
+            {
+                Console.Write($">><<");
+            }
+            Console.WriteLine();
+            for (int j = 1; j <= Size; j++)
+            {
+                Console.Write($"{j,2} |");
+                for (int i = 1; i <= Size; i++)
                 {
-                    if (hideShips)
+                    Ship ship = grid[i - 1, j - 1];
+                    bool shot = shots[i - 1, j - 1];
+                    char s = ' ';
+                    if (shot)
                     {
-                        if (grid[i, j] == null)
+                        if (ship == null)
                         {
-                            display[i, j] = "~";
+                            s = 'o';
+                        }
+                        else if (ship.Destroyed())
+                        {
+                            s = 'X';
                         }
                         else
                         {
-                            display[i, j] = " ";
+                            s = '#';
                         }
                     }
                     else
                     {
-                        if (grid[i, j] == null)
+                        if (!hideShips && ship != null)
                         {
-                            display[i, j] = "~";
+                            s = 'S';
                         }
                         else
                         {
-                            display[i, j] = "S";
+                            s = '~';
                         }
                     }
+                    Console.Write($" {s}  ");
                 }
+                Console.WriteLine($"|");
             }
-            for (int i = 0; i < Size; i++)
+            Console.Write($"    ");
+            for (int i = 1; i <= Size; i++)
             {
-                for (int j = 0; j < Size; j++)
-                {
-                    if (grid[i, j] != null && grid[i, j].Hits > 0)
-                    {
-                        Ship ship = grid[i, j];
-                        for (int k = 0; k < ship.Length; k++)
-                        {
-                            int x = ship.StartX;
-                            int y = ship.StartY;
-                            if (ship.IsHorizontal)
-                            {
-                                y += k;
-                            }
-                            else
-                            {
-                                x += k;
-                            }
-                            if (x == i && y == j && k < ship.Length)
-                            {
-                                display[i, j] = "#";
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            Console.Write("   ");
-            for (int j = 0;j < Size; j++)
-            {
-                Console.Write($"{j, 2}");
+                Console.Write($">><<");
             }
             Console.WriteLine();
-            for (int i = 0; i < Size; i++)
-            {
-                Console.WriteLine($"{i + 1,2}");
-                for (int j = 0; j < Size; j++)
-                {
-                    Console.WriteLine($"{display[i, j], 2}");
-                }
-                Console.WriteLine() ;
-            }
         }   
         
     }
